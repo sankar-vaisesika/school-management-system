@@ -1,0 +1,24 @@
+#api for creating custom user
+###
+
+POST http://127.0.0.1:8000/api/users/register/
+Content-Type: application/json
+
+{
+  "username": "Mani",
+  "email": "mani@gmail.com",
+  "password": "mani",
+  "user_type": "student",
+  "student_id":"100000"
+}
+
+#api call for login user
+###
+
+POST http://127.0.0.1:8000/api/users/login/
+Content-Type: application/json
+
+{
+  "username":"Mani",
+  "password":"mani"
+}
