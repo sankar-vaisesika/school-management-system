@@ -5,11 +5,10 @@ POST http://127.0.0.1:8000/api/users/register/
 Content-Type: application/json
 
 {
-  "username": "Mani",
-  "email": "mani@gmail.com",
-  "password": "mani",
-  "user_type": "student",
-  "student_id":"100000"
+  "username": "bhagaval",
+  "email": "bhagaval@gmail.com",
+  "password": "bhagaval",
+  "user_type": "student"
 }
 
 #api call for login user
@@ -19,6 +18,33 @@ POST http://127.0.0.1:8000/api/users/login/
 Content-Type: application/json
 
 {
-  "username":"Mani",
+  "username":"mani",
   "password":"mani"
 }
+
+#api call for student detail
+###
+
+GET http://127.0.0.1:8000/api/users/student/5/
+
+
+#api call for updating a student
+###
+
+PUT http://127.0.0.1:8000/api/users/student/5/
+Content-Type: application/json
+
+{
+  "student_id":"100001"
+
+}
+
+#api call for deleting a student
+###
+
+DELETE http://127.0.0.1:8000/api/users/student/4/
+
+#api call for listing students
+###
+
+GET http://127.0.0.1:8000/api/users/student/

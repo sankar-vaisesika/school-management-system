@@ -23,10 +23,22 @@ class TeacherProfile(models.Model):
 
     teacher_id=models.CharField(max_length=6,unique=True,blank=True)
 
-    subject=models.CharField(max_length=100)
+    subject=models.CharField(max_length=100,null=False,blank=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.teacher_id}"
+    
+    def save(self, *args, **kwargs):
+
+        if not self.teacher_id:
+        
+            last = TeacherProfile.objects.order_by('-id').first()
+        
+            last_number = int(last.teacher_id[2:]) if last and last.teacher_id else 99
+        
+            self.teacher_id = f"TS{last_number + 1}"
+        
+        super().save(*args, **kwargs)
 
 
 class StudentProfile(models.Model):
@@ -37,3 +49,15 @@ class StudentProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.student_id}"
+    
+    def save(self, *args, **kwargs):
+        
+        if not self.student_id:
+        
+            last = StudentProfile.objects.order_by('-id').first()
+        
+            new_id = 100000 if not last else int(last.student_id) + 1
+        
+            self.student_id = str(new_id)
+        
+        super().save(*args, **kwargs)
