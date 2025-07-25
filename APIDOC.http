@@ -2,13 +2,14 @@
 ###
 
 POST http://127.0.0.1:8000/api/users/register/
+Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "username": "bhagaval",
-  "email": "bhagaval@gmail.com",
-  "password": "bhagaval",
-  "user_type": "student"
+  "username": "student1",
+  "email": "student1@gmail.com",
+  "password": "student1",
+  "user_type":"student"
 }
 
 #api call for login user
@@ -26,6 +27,7 @@ Content-Type: application/json
 ###
 
 GET http://127.0.0.1:8000/api/users/student/5/
+Authorization: Basic mani:mani
 
 
 #api call for updating a student
@@ -42,9 +44,39 @@ Content-Type: application/json
 #api call for deleting a student
 ###
 
-DELETE http://127.0.0.1:8000/api/users/student/4/
+DELETE http://127.0.0.1:8000/api/users/student/9/
 
 #api call for listing students
 ###
 
 GET http://127.0.0.1:8000/api/users/student/
+Authorization: Basic mani:mani
+
+#api call for listing teachers
+###
+
+GET http://127.0.0.1:8000/api/users/teacher/
+Authorization: Basic admin:admin
+
+#api call for deleting a teacher
+###
+DELETE http://127.0.0.1:8000/api/users/teacher/4/
+
+#api cal for updating a teacher
+###
+
+PUT http://127.0.0.1:8000/api/users/teacher/2/
+Content-Type: application/json
+
+{
+
+    "username": "john",
+    "email": "john@gmail.com",
+    "user_type": "teacher",
+    "subject": "Science"
+}
+
+#api cal for retrieving a teacher
+###
+
+GET http://127.0.0.1:8000/api/users/teacher/1/

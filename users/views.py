@@ -6,11 +6,13 @@ from rest_framework import authentication,permissions
 from django.contrib.auth import authenticate
 from users.models import StudentProfile,TeacherProfile
 from users.serializers import StudentProfileSerializer,TeacherProfileSerializer
-# from users.permissions import IsAdmin,IsStudent,IsTeacher,IsTeacherorAdmin
+from users.permissions import IsAdmin,IsStudent,IsTeacher,IsTeacherorAdmin
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 class UserRegistrationView(APIView):
+
+    permission_classes=[IsAuthenticated,IsAdmin]
 
     def post(self,request,*args,**kwargs):
 
@@ -63,14 +65,18 @@ class LoginView(APIView):
                 student_serializer=StudentProfileSerializer(students,many=True)
                 
                 return Response(data=student_serializer.data)
-        
-        else:
+            
+            elif user_instance.user_type=="student":
 
-            return Response(data={'message':"invalid credetials"})
+                return Response(data={"message":"valid credetials"})
+        
+            else:
+
+                return Response(data={'message':"invalid credetials"})
         
 class StudentListView(APIView):
 
-    # permission_classes=[IsAuthenticated,IsTeacherorAdmin]
+    permission_classes=[IsAuthenticated,IsTeacherorAdmin]
 
     def get(self,request,*args,**kwargs):
 
@@ -81,6 +87,8 @@ class StudentListView(APIView):
         return Response(data=serializer_instance.data)
         
 class StudentProfileDetailUpdateDeleteView(APIView):
+
+    permission_classes=[IsAuthenticated,IsTeacher]
 
     def get(self,request,*args,**kwargs):
 
@@ -123,6 +131,8 @@ class StudentProfileDetailUpdateDeleteView(APIView):
         return Response(data={"message":"deleted successfully"})
     
 class TeacherListView(APIView):
+
+    permission_classes=[IsAuthenticated,IsAdmin]
 
     def get(self,request,*args,**kwargs):
 

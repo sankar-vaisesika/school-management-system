@@ -1,5 +1,4 @@
 from django.db import models
-from random import randint
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 
@@ -10,23 +9,36 @@ class CustomUser(AbstractUser):
         ('student','Student'),
     )
 
-    user_type=models.CharField(max_length=10,choices=USER_TYPE_CHOICES,default='student')
+    user_type=models.CharField(max_length=10,choices=USER_TYPE_CHOICES,null=False,blank=False)
 
 
     def __str__(self):
         
         return f"{self.username} - {self.user_type}"
+    
+class Department(models.Model):
+
+    name=models.CharField(max_length=100,unique=True)
+
+    hod=models.OneToOneField('TeacherProfile',on_delete=models.SET_NULL,null=True,blank=True,related_name='headed_department')
+
+    def __str__(self):
+
+        return self.name
 
 class TeacherProfile(models.Model):
 
-    user=models.OneToOneField(CustomUser,on_delete=models.CASCADE)
+    user=models.OneToOneField(CustomUser,on_delete=models.CASCADE,primary_key=True)
 
     teacher_id=models.CharField(max_length=6,unique=True,blank=True)
 
     subject=models.CharField(max_length=100,null=False,blank=False)
 
+    department = models.ForeignKey(Department,on_delete=models.CASCADE,null=True,blank=True,related_name='teachers')
+
+
     def __str__(self):
-        return f"{self.user.username} - {self.teacher_id}"
+        return f"{self.user.username} - {self.subject} - {self.teacher_id}"
     
     def save(self, *args, **kwargs):
 
@@ -43,9 +55,11 @@ class TeacherProfile(models.Model):
 
 class StudentProfile(models.Model):
 
-    user=models.OneToOneField(CustomUser,on_delete=models.CASCADE)
+    user=models.OneToOneField(CustomUser,on_delete=models.CASCADE,primary_key=True)
 
     student_id=models.CharField(max_length=6,unique=True,blank=True)
+
+    department=models.ForeignKey(Department,on_delete=models.CASCADE,related_name="students")
 
     def __str__(self):
         return f"{self.user.username} - {self.student_id}"
@@ -61,3 +75,5 @@ class StudentProfile(models.Model):
             self.student_id = str(new_id)
         
         super().save(*args, **kwargs)
+
+
