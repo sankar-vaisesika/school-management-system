@@ -6,10 +6,11 @@ Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "username": "student1",
-  "email": "student1@gmail.com",
-  "password": "student1",
-  "user_type":"student"
+  "username": "subin",
+  "password": "password@123",
+  "user_type": "teacher",
+  "department_name": "CSE"
+  
 }
 
 #api call for login user
@@ -19,38 +20,41 @@ POST http://127.0.0.1:8000/api/users/login/
 Content-Type: application/json
 
 {
-  "username":"mani",
-  "password":"mani"
+  "username":"subin",
+  "password":"password@123"
 }
 
 #api call for student detail
 ###
 
-GET http://127.0.0.1:8000/api/users/student/5/
-Authorization: Basic mani:mani
+GET http://127.0.0.1:8000/api/users/student/44/
+Authorization: Basic subin:password@123
+
 
 
 #api call for updating a student
 ###
 
-PUT http://127.0.0.1:8000/api/users/student/5/
+PUT http://127.0.0.1:8000/api/users/student/44/
 Content-Type: application/json
+Authorization: Basic admin:admin
 
 {
-  "student_id":"100001"
+  "department_name":"Mech"
 
 }
 
 #api call for deleting a student
 ###
 
-DELETE http://127.0.0.1:8000/api/users/student/9/
+DELETE http://127.0.0.1:8000/api/users/student/49/
+Authorization: Basic admin:admin
 
 #api call for listing students
 ###
 
 GET http://127.0.0.1:8000/api/users/student/
-Authorization: Basic mani:mani
+Authorization: Basic subin:password@123
 
 #api call for listing teachers
 ###

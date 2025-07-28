@@ -1,51 +1,29 @@
 from django.shortcuts import render,get_object_or_404
 from rest_framework.response import Response
-from users.serializers import UserSerializer
+from users.serializers import UserRegistrationSerializer
+from rest_framework.generics import ListAPIView,RetrieveAPIView,UpdateAPIView,DestroyAPIView
 from rest_framework.views import APIView
 from rest_framework import authentication,permissions
 from django.contrib.auth import authenticate
-from users.models import StudentProfile,TeacherProfile
+from users.models import StudentProfile,TeacherProfile,Department,CustomUser
 from users.serializers import StudentProfileSerializer,TeacherProfileSerializer
-from users.permissions import IsAdmin,IsStudent,IsTeacher,IsTeacherorAdmin
+from users.permissions import IsAdmin,IsTeacher,IsTeacherorAdmin
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 class UserRegistrationView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
 
-    permission_classes=[IsAuthenticated,IsAdmin]
-
-    def post(self,request,*args,**kwargs):
-
-        serializer_instance=UserSerializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer_instance = UserRegistrationSerializer(data=request.data)
 
         if serializer_instance.is_valid():
+            serializer_instance.save()
 
-            user=serializer_instance.save()
-
-            user_type=serializer_instance.validated_data.get("user_type")
-
-            if user_type == "student":
-
-                StudentProfile.objects.create(user=user)
-
-            elif user_type == "teacher":
-
-                subject=request.data.get("subject")
-
-                if not subject:
-
-                    user.delete()
-
-                    return Response({"error":"subject is required"})
-
-                TeacherProfile.objects.create(user=user,subject=subject)
-
-            return Response(data=serializer_instance.data)
+            return Response({"message": "User registered successfully!"})
         
-        else:
+        return Response(serializer_instance.errors)
 
-            return Response(data=serializer_instance.errors)
-        
 class LoginView(APIView):
 
     def post(self,request,*args,**kwargs):
@@ -54,57 +32,58 @@ class LoginView(APIView):
 
         pwd=request.data.get("password")
 
+        if not uname or not pwd:
+            return Response({"error": "Username and password are required"})
+
         user_instance=authenticate(username=uname,password=pwd)
 
         if user_instance:
         
             if user_instance.user_type=="teacher":
 
-                students=StudentProfile.objects.all()
-                
-                student_serializer=StudentProfileSerializer(students,many=True)
-                
-                return Response(data=student_serializer.data)
+                students = StudentProfile.objects.all()
+                student_serializer = StudentProfileSerializer(students, many=True)
+                return Response({
+                    "message": "Teacher logged in successfully",
+                    "students": student_serializer.data
+                })
             
             elif user_instance.user_type=="student":
 
-                return Response(data={"message":"valid credetials"})
+                return Response(data={"message":"student logged in successfully"})
         
             else:
 
-                return Response(data={'message':"invalid credetials"})
+                return Response(data={'message':"invalid user type"})
+            
+        return Response({"error": "Invalid credentials"})
         
-class StudentListView(APIView):
+class StudentListView(ListAPIView):
 
-    permission_classes=[IsAuthenticated,IsTeacherorAdmin]
+        queryset=StudentProfile.objects.all()
 
-    def get(self,request,*args,**kwargs):
+        serializer_class=StudentProfileSerializer
 
-        student_instance=StudentProfile.objects.all()
-
-        serializer_instance=StudentProfileSerializer(student_instance,many=True)
-
-        return Response(data=serializer_instance.data)
-        
-class StudentProfileDetailUpdateDeleteView(APIView):
-
-    permission_classes=[IsAuthenticated,IsTeacher]
-
-    def get(self,request,*args,**kwargs):
-
-        id=kwargs.get("pk")
-
-        student_instance=get_object_or_404(StudentProfile,id=id)
-
-        serializer_instance=StudentProfileSerializer(student_instance)
-
-        return Response(data=serializer_instance.data)
+        permission_classes=[IsAuthenticated,IsTeacherorAdmin]
     
+class StudentRetrieveView(APIView):
+    permission_classes = [IsAuthenticated, IsTeacherorAdmin]
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        student = get_object_or_404(StudentProfile, pk=pk)
+        serializer = StudentProfileSerializer(student)
+        return Response(serializer.data)
+        
+class StudentProfileUpdateDeleteView(APIView):
+
+    permission_classes=[IsAuthenticated,IsAdmin]
+
     def put(self,request,*args,**kwargs):
 
         id=kwargs.get("pk")
 
-        student_instance=get_object_or_404(StudentProfile,id=id)
+        student_instance=get_object_or_404(StudentProfile,user_id=id)
 
         serializer_instance=StudentProfileSerializer(data=request.data,instance=student_instance)
 
@@ -122,7 +101,7 @@ class StudentProfileDetailUpdateDeleteView(APIView):
 
         id=kwargs.get("pk")
 
-        student_instance=get_object_or_404(StudentProfile,id=id)
+        student_instance=get_object_or_404(StudentProfile,user_id=id)
         
         user=student_instance.user
 
@@ -183,5 +162,3 @@ class TeacherProfileDetailUpdateDeleteView(APIView):
         user.delete()
 
         return Response(data={"message":"deleted successfully"})
-
-
