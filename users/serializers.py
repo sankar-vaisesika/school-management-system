@@ -1,12 +1,18 @@
 from rest_framework import serializers
-from users.models import CustomUser, StudentProfile, TeacherProfile,Department
+from users.models import CustomUser, StudentProfile, TeacherProfile,Department,Subject,Mark
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'user_type']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(write_only=True)
+    is_hod = serializers.BooleanField(write_only=True, required=False, default=False)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'password', 'email', 'user_type', 'department_name']
+        fields = ['username', 'password', 'email', 'user_type', 'department_name','is_hod']
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, data):
@@ -17,6 +23,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         department_name = validated_data.pop('department_name')
         user_type = validated_data['user_type']
+        is_hod = validated_data.pop('is_hod', False)
 
         # Get or create department
         department, _ = Department.objects.get_or_create(name=department_name)
@@ -25,11 +32,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = CustomUser.objects.create_user(**validated_data)
 
         # Create profile
-        if user_type == 'teacher':
-            TeacherProfile.objects.create(user=user, department=department)
-        elif user_type == 'student':
+        if user_type == 'student':
             StudentProfile.objects.create(user=user, department=department)
 
+        elif user_type == 'teacher':
+            teacher_profile = TeacherProfile.objects.create(user=user, department=department)
+
+            if is_hod and department.hod is None:
+                department.hod = teacher_profile
+                department.save()
         return user
 
     
@@ -39,7 +50,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
         model=Department
 
-        fields=['id','name']
+        fields=['id','name','hod']
 
 class StudentProfileSerializer(serializers.ModelSerializer):
     user = UserRegistrationSerializer(read_only=True)
@@ -76,3 +87,32 @@ class DepartmentDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'hod', 'teachers', 'students']
 
 
+class SubjectSerializer(serializers.ModelSerializer):
+
+    department_name = serializers.CharField(write_only=True)
+    
+    department = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+    
+        model = Subject
+    
+        fields = ['id', 'name', 'department', 'department_name']
+
+    def create(self, validated_data):
+    
+        dept_name = validated_data.pop('department_name')
+    
+        department, created = Department.objects.get_or_create(name=dept_name)
+    
+        subject = Subject.objects.create(department=department, **validated_data)
+    
+        return subject
+
+class MarkSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model=Mark
+
+        fields=['id','student','subject','mark_obtained','created_at']

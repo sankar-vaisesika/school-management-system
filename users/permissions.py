@@ -4,7 +4,14 @@ class IsAdmin(BasePermission):
 
     def has_permission(self, request, view):
     
-        return request.user.is_authenticated and request.user.is_superuser
+        return request.user.is_authenticated and request.user.is_staff  
+    
+class IsHOD(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if not user.is_authenticated or user.user_type != "teacher":
+            return False
+        return hasattr(user, 'teacherprofile') and user.teacherprofile.department.hod == user.teacherprofile
     
 class IsTeacher(BasePermission):
 

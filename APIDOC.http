@@ -6,11 +6,11 @@ Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "username": "subin",
+  "username": "teacher_mech3",
   "password": "password@123",
   "user_type": "teacher",
-  "department_name": "CSE"
-  
+  "department_name": "MECH",
+  "is_hod": false
 }
 
 #api call for login user
@@ -20,34 +20,81 @@ POST http://127.0.0.1:8000/api/users/login/
 Content-Type: application/json
 
 {
-  "username":"subin",
+  "username":"teacher_cse2",
   "password":"password@123"
 }
+
+#api call for listing teachers
+###
+
+GET http://127.0.0.1:8000/api/users/teachers/
+Authorization: Basic admin:admin
+
+#api call for listing students
+###
+
+GET http://127.0.0.1:8000/api/users/students/
+Authorization: Basic teacher_cse1:password@123
+
+#api call for creating subjects
+###
+POST http://127.0.0.1:8000/api/users/subjects/create/
+Authorization: Basic admin:admin
+Content-Type: application/json
+
+{
+  "name": "Electrical engineering",
+  "department_name": "ECE"
+}
+
+###
+#api call for listing subjects in a department
+
+GET http://127.0.0.1:8000/api/users/subjects/department/3/
+
+###
+#api call for updating and deleting a subject
+
+PUT http://127.0.0.1:8000/api/users/subjects/1/
+Authorization: Basic admin:admin
+Content-Type: application/json
+
+{
+  "name": "Advanced Python"
+}
+
+###
+#api call for deleting a subject
+
+DEL http://127.0.0.1:8000/api/users/subjects/3/
+Authorization: Basic admin:admin
 
 #api call for student detail
 ###
 
-GET http://127.0.0.1:8000/api/users/student/44/
-Authorization: Basic subin:password@123
+GET http://127.0.0.1:8000/api/users/student/11/
+Authorization: Basic teacher_cse2:password@123
 
 
 
 #api call for updating a student
 ###
 
-PUT http://127.0.0.1:8000/api/users/student/44/
+PUT http://127.0.0.1:8000/api/users/student/60/
 Content-Type: application/json
 Authorization: Basic admin:admin
 
 {
-  "department_name":"Mech"
-
+  "department":{ 
+    "id":1,
+    "name":"ECE"   
+  
 }
-
+}
 #api call for deleting a student
 ###
 
-DELETE http://127.0.0.1:8000/api/users/student/49/
+DELETE http://127.0.0.1:8000/api/users/student/61/
 Authorization: Basic admin:admin
 
 #api call for listing students
@@ -74,10 +121,7 @@ Content-Type: application/json
 
 {
 
-    "username": "john",
-    "email": "john@gmail.com",
-    "user_type": "teacher",
-    "subject": "Science"
+
 }
 
 #api cal for retrieving a teacher
