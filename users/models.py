@@ -102,6 +102,8 @@ class Subject(models.Model):
 
     department=models.ForeignKey(Department,on_delete=models.CASCADE,related_name='subjects')
 
+    teacher=models.OneToOneField('TeacherProfile',on_delete=models.SET_NULL,null=True,related_name='subject')
+
     created_at=models.DateTimeField(auto_now_add=True)
 
     updated_at=models.DateTimeField(auto_now=True)
@@ -115,6 +117,8 @@ class Mark(models.Model):
     student=models.ForeignKey(StudentProfile,on_delete=models.CASCADE,related_name='marks')
 
     subject=models.ForeignKey(Subject,on_delete=models.CASCADE,related_name='marks')
+
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.SET_NULL, null=True, blank=True)
 
     mark_obtained=models.PositiveBigIntegerField()
 

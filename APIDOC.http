@@ -6,11 +6,9 @@ Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "username": "teacher_mech3",
+  "username": "student_mech5",
   "password": "password@123",
-  "user_type": "teacher",
-  "department_name": "MECH",
-  "is_hod": false
+  "user_type": "student"
 }
 
 #api call for login user
@@ -24,18 +22,63 @@ Content-Type: application/json
   "password":"password@123"
 }
 
+###############TEACHERS###################
 #api call for listing teachers
 ###
 
 GET http://127.0.0.1:8000/api/users/teachers/
 Authorization: Basic admin:admin
 
+
+
+#api call for deleting a teacher
+###
+DELETE http://127.0.0.1:8000/api/users/teachers/3/
+Authorization: Basic admin:admin
+
+#api call for updating a teacher
+###
+PUT http://127.0.0.1:8000/api/users/teachers/1/
+Authorization: Basic admin:admin
+Content-Type: application/json
+
+{
+  "department_name": "CSE",
+  "is_hod": true
+}
+
+#api cal for retrieving a teacher
+###
+
+GET http://127.0.0.1:8000/api/users/teachers/1/
+Authorization: Basic admin:admin
+
+##############STUDENTS##########################
 #api call for listing students
 ###
 
 GET http://127.0.0.1:8000/api/users/students/
-Authorization: Basic teacher_cse1:password@123
+Authorization: Basic hai:password@123
 
+#api call for updating a student
+###
+
+PUT http://127.0.0.1:8000/api/users/students/10/
+Content-Type: application/json
+Authorization: Basic admin:admin
+
+{
+  "username": "rahul_updated",
+  "department_name": "ECE"
+}
+
+#api call for deleting a student
+###
+
+DELETE http://127.0.0.1:8000/api/users/students/9/
+Authorization: Basic admin:admin
+
+#############SUBJECTS########################
 #api call for creating subjects
 ###
 POST http://127.0.0.1:8000/api/users/subjects/create/
@@ -43,88 +86,77 @@ Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "name": "Electrical engineering",
-  "department_name": "ECE"
+  "name": "mecha",
+  "department_name": "CSE",
+  "teacher":7
 }
 
 ###
 #api call for listing subjects in a department
 
-GET http://127.0.0.1:8000/api/users/subjects/department/3/
+GET http://127.0.0.1:8000/api/users/subjects/department/4/
 
 ###
-#api call for updating and deleting a subject
+#api call for updating a subject
 
 PUT http://127.0.0.1:8000/api/users/subjects/1/
 Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "name": "Advanced Python"
+
+  "name": "Pythoasn",
+  "department":"CSE",
+  "teacher":1
 }
 
 ###
 #api call for deleting a subject
 
-DEL http://127.0.0.1:8000/api/users/subjects/3/
+DELETE http://127.0.0.1:8000/api/users/subjects/4/
 Authorization: Basic admin:admin
 
-#api call for student detail
+
 ###
+#api call for adding marks
 
-GET http://127.0.0.1:8000/api/users/student/11/
-Authorization: Basic teacher_cse2:password@123
-
-
-
-#api call for updating a student
-###
-
-PUT http://127.0.0.1:8000/api/users/student/60/
-Content-Type: application/json
-Authorization: Basic admin:admin
-
-{
-  "department":{ 
-    "id":1,
-    "name":"ECE"   
-  
-}
-}
-#api call for deleting a student
-###
-
-DELETE http://127.0.0.1:8000/api/users/student/61/
-Authorization: Basic admin:admin
-
-#api call for listing students
-###
-
-GET http://127.0.0.1:8000/api/users/student/
-Authorization: Basic subin:password@123
-
-#api call for listing teachers
-###
-
-GET http://127.0.0.1:8000/api/users/teacher/
-Authorization: Basic admin:admin
-
-#api call for deleting a teacher
-###
-DELETE http://127.0.0.1:8000/api/users/teacher/4/
-
-#api cal for updating a teacher
-###
-
-PUT http://127.0.0.1:8000/api/users/teacher/2/
+POST http://127.0.0.1:8000/api/users/marks/
+Authorization: Basic teacher_mech2:password@123
 Content-Type: application/json
 
 {
-
-
+  "student": 10,
+  "subject": 6,
+  "mark_obtained": 100
 }
 
-#api cal for retrieving a teacher
+#api call for updating marks
 ###
 
-GET http://127.0.0.1:8000/api/users/teacher/1/
+PUT http://127.0.0.1:8000/api/users/marks/5/
+Authorization: Basic teacher_mech1:password@123
+Content-Type: application/json
+
+{
+  "mark":93
+}
+
+#api call for deleting a mark
+###
+
+DELETE  http://127.0.0.1:8000/api/users/marks/5/
+Authorization: Basic teacher_mech1:password@123
+
+#api call to list a mark of a student
+###
+
+GET http://127.0.0.1:8000/api/users/student/marks/
+Authorization: Basic student_mech4:password@123
+Content-Type: application/json
+
+#api call for HOD to view marks in the department
+###
+
+GET http://127.0.0.1:8000/api/users/hod/department-marks/
+Authorization: Basic teacher_mech1:password@123
+Content-Type: application/json

@@ -5,14 +5,14 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView,RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework import authentication,permissions
 from django.contrib.auth import authenticate
-from users.models import StudentProfile,TeacherProfile,Department,CustomUser,Subject
-from users.serializers import StudentProfileSerializer,TeacherProfileSerializer,SubjectSerializer
+from users.models import StudentProfile,TeacherProfile,Department,CustomUser,Subject,Mark
+from users.serializers import StudentProfileSerializer,TeacherProfileSerializer,SubjectSerializer,MarkSerializer
 from users.permissions import IsAdmin,IsHOD,IsTeacherorAdmin
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 class UserRegistrationView(APIView):
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdmin] 
 
     def post(self, request, *args, **kwargs):
         serializer_instance = UserRegistrationSerializer(data=request.data)
@@ -98,43 +98,6 @@ class StudentListView(APIView):
 
         serializer = StudentProfileSerializer(students, many=True)
         return Response(serializer.data)
-            
-class SubjectCreateView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-
-    def post(self, request):
-        serializer = SubjectSerializer(data=request.data)
-        if serializer.is_valid():
-            subject = serializer.save()
-            return Response(SubjectSerializer(subject).data)
-        return Response(serializer.errors)
-
-class SubjectListView(APIView):
-
-    def get(self,request,*args,**kwargs):
-        dept_id=kwargs.get("dept_id")
-
-        department=get_object_or_404(Department,id=dept_id) 
-        subjects=department.subjects.all()
-        serializer_instance=SubjectSerializer(subjects,many=True)
-
-        return Response(data=serializer_instance.data) 
-
-class SubjectUpdateDeleteView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-
-    def put(self, request, pk):
-        subject = get_object_or_404(Subject, pk=pk)
-        serializer = SubjectSerializer(instance=subject, data=request.data, partial=True)
-        if serializer.is_valid():
-            updated_subject = serializer.save()
-            return Response(SubjectSerializer(updated_subject).data)
-        return Response(serializer.errors)
-
-    def delete(self, request, pk):
-        subject = get_object_or_404(Subject, pk=pk)
-        subject.delete()
-        return Response({"message": "Subject deleted."})    
 
 class StudentRetrieveView(APIView):
     permission_classes = [IsAuthenticated, IsTeacherorAdmin]
@@ -184,6 +147,8 @@ class StudentProfileUpdateDeleteView(APIView):
     
 class TeacherProfileDetailUpdateDeleteView(APIView):
 
+    permission_classes=[IsAuthenticated,IsAdmin]
+
     def get(self,request,*args,**kwargs):
 
         id=kwargs.get("pk")
@@ -224,3 +189,160 @@ class TeacherProfileDetailUpdateDeleteView(APIView):
 
         return Response(data={"message":"deleted successfully"})
     
+            
+class SubjectCreateView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        serializer = SubjectSerializer(data=request.data)
+        if serializer.is_valid():
+            subject = serializer.save()
+            return Response(SubjectSerializer(subject).data)
+        return Response(serializer.errors)
+
+class SubjectListView(APIView):
+
+    def get(self,request,*args,**kwargs):
+        dept_id=kwargs.get("dept_id")
+
+        department=get_object_or_404(Department,id=dept_id) 
+        subjects=department.subjects.all()
+        serializer_instance=SubjectSerializer(subjects,many=True)
+
+        return Response(data=serializer_instance.data) 
+
+class SubjectUpdateDeleteView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def put(self, request, pk):
+        subject = get_object_or_404(Subject, pk=pk)
+        serializer = SubjectSerializer(instance=subject, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated_subject = serializer.save()
+            return Response(SubjectSerializer(updated_subject).data)
+        return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        subject = get_object_or_404(Subject, pk=pk)
+        subject.delete()
+        return Response({"message": "Subject deleted."})    
+
+    
+class MarkCreateView(APIView):
+
+    permission_classes=[IsAuthenticated]
+
+    def post(self,request,*args,**kwargs):
+
+        teacher_profile=get_object_or_404(TeacherProfile,user=request.user)
+
+        # if teacher_profile!=teacher_profile.department.subject:
+
+        #     return Response({'detail':"Only subject teacher can add marks"})
+        
+        serializer=MarkSerializer(data=request.data)
+
+        if serializer.is_valid():
+
+            student=serializer.validated_data['student']
+
+            subject=serializer.validated_data['subject']
+
+            if subject.teacher != teacher_profile:
+                return Response({'detail': 'You are not the assigned teacher for this subject.'})
+
+            if student.department != teacher_profile.department:
+                return Response({'detail': 'Student does not belong to your department.'})
+
+            serializer.save(teacher=teacher_profile)
+            
+            return Response(serializer.data)
+
+        return Response(serializer.errors)
+    
+class MarkUpdateDeleteView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    # def delete(self, request, pk, *args, **kwargs):
+
+    #     teacher_profile = get_object_or_404(TeacherProfile, user=request.user)
+        
+    #     mark_instance = get_object_or_404(Mark, pk=pk)
+
+    #     # Check if the logged-in teacher is the subject teacher
+    #     if mark_instance.subject.teacher != teacher_profile:
+            
+    #         return Response({"detail": "You are not allowed to delete this mark. Only the subject teacher can delete it."}, status=403)
+
+    #     mark_instance.delete()
+    #     return Response({"detail": "Mark deleted successfully."})
+
+    permission_classes=[IsAuthenticated]
+
+    def get_teacher_profile(self,request):
+
+        return get_object_or_404(TeacherProfile,user=request.user)
+    
+    def get_mark_instance(self, pk, teacher_profile):
+        mark = get_object_or_404(Mark, pk=pk)
+
+        # Check permission: only the teacher who teaches the subject can modify
+        if mark.subject.teacher != teacher_profile:
+            return None, Response({'detail': 'Permission denied. You are not the subject teacher.'}, status=403)
+
+        return mark, None
+
+    def put(self, request, pk, *args, **kwargs):
+        teacher_profile = self.get_teacher_profile(request)
+        mark_instance, error = self.get_mark_instance(pk, teacher_profile)
+        if error:
+            return error
+
+        serializer = MarkSerializer(instance=mark_instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save(teacher=teacher_profile)  # Optional, keeps consistency
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk, *args, **kwargs):
+        teacher_profile = self.get_teacher_profile(request)
+        mark_instance, error = self.get_mark_instance(pk, teacher_profile)
+        if error:
+            return error
+
+        mark_instance.delete()
+        return Response({'detail': 'Mark deleted successfully'}) 
+    
+class StudentMarkListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            student_profile = request.user.studentprofile
+        except:
+            return Response({"detail": "You are not a student."})
+
+        marks = Mark.objects.filter(student=student_profile)
+        serializer = MarkSerializer(marks, many=True)
+        return Response(serializer.data)
+    
+class HODStudentMarksView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            teacher_profile = request.user.teacherprofile
+        except:
+            return Response({"detail": "You are not a teacher."})
+
+        # Check if user is HOD
+        if teacher_profile != teacher_profile.department.hod:
+            return Response({"detail": "You are not the HOD."}, status=403)
+
+        # Get all students in department
+        department_students = StudentProfile.objects.filter(department=teacher_profile.department)
+
+        # Get all marks for those students
+        marks = Mark.objects.filter(student__in=department_students)
+        serializer = MarkSerializer(marks, many=True)
+        return Response(serializer.data)
