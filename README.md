@@ -27,13 +27,15 @@
     ```
  
 6. Register the sub-app:
-    Open settings.py in the main project folder (config) and add 'users'  to the INSTALLED_APPS list.
- 
+    
+    - Open settings.py in the main project folder (config) and add 'users'  to the INSTALLED_APPS list.
+    
 7. Define your models:
-    Open models.py inside the user and define the database tables you need.
+
+   - Open models.py inside the user and define the database tables you need.
  
 8. Apply the migrations:
-    Run the following commands to create and apply the database migrations:
+   - Run the following commands to create and apply the database migrations:
     ```
     python manage.py makemigrations
  
