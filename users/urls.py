@@ -16,5 +16,7 @@ urlpatterns=[
     path('marks/<int:pk>/',views.MarkUpdateDeleteView.as_view()),
     path('student/marks/', views.StudentMarkListView.as_view(), name='student-marks'),
     path('hod/department-marks/', views.HODStudentMarksView.as_view(), name='hod-marks'),
-
+    path('student/report/',views.StudentReportView.as_view()),
+    path('subjects/<int:pk>/topper/',views.SubjectTopperView.as_view()),
+    path('hod/stats/',views.DepartmentStatsView.as_view()),
 ]

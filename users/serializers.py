@@ -178,9 +178,12 @@ class SubjectSerializer(serializers.ModelSerializer):
         return subject
 
 class MarkSerializer(serializers.ModelSerializer):
-    student = StudentProfileSerializer(read_only=True)
-    subject = SubjectSerializer(read_only=True)
-    teacher = TeacherProfileSerializer(read_only=True)
+    student = serializers.PrimaryKeyRelatedField(queryset=StudentProfile.objects.all())
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+    teacher = TeacherProfileSerializer(read_only=True)  # keep teacher read-only, set in view
+
+    status=serializers.SerializerMethodField()
+    percentage=serializers.SerializerMethodField()
 
     class Meta:
         model = Mark
@@ -193,3 +196,11 @@ class MarkSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Mark must be between 0 to 100")
         
         return value
+    
+    def get_status(self,obj):
+
+        return "Pass" if obj.mark_obtained>=40 else "Fail"
+    
+    def get_percentage(self,obj):
+
+        return round((obj.mark_obtained/100)*100,2)

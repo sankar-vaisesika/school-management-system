@@ -8,7 +8,8 @@ Content-Type: application/json
 {
   "username": "student_mech5",
   "password": "password@123",
-  "user_type": "student"
+  "user_type": "student",
+  "department_name":"MECH"
 }
 
 #api call for login user
@@ -58,18 +59,18 @@ Authorization: Basic admin:admin
 ###
 
 GET http://127.0.0.1:8000/api/users/students/
-Authorization: Basic hai:password@123
+Authorization: Basic teacher_cse1:password@123
 
 #api call for updating a student
 ###
 
-PUT http://127.0.0.1:8000/api/users/students/10/
+PUT http://127.0.0.1:8000/api/users/students/11/
 Content-Type: application/json
 Authorization: Basic admin:admin
 
 {
-  "username": "rahul_updated",
-  "department_name": "ECE"
+  "username": "student_cse1",
+  "department_name": "CSE"
 }
 
 #api call for deleting a student
@@ -86,15 +87,15 @@ Authorization: Basic admin:admin
 Content-Type: application/json
 
 {
-  "name": "mecha",
-  "department_name": "CSE",
-  "teacher":7
+  "name": "Fluid Mechanics",
+  "department_name": "MECH",
+  "teacher":9
 }
 
 ###
 #api call for listing subjects in a department
 
-GET http://127.0.0.1:8000/api/users/subjects/department/4/
+GET http://127.0.0.1:8000/api/users/subjects/department/1/
 
 ###
 #api call for updating a subject
@@ -105,7 +106,7 @@ Content-Type: application/json
 
 {
 
-  "name": "Pythoasn",
+  "name": "Python",
   "department":"CSE",
   "teacher":1
 }
@@ -121,13 +122,13 @@ Authorization: Basic admin:admin
 #api call for adding marks
 
 POST http://127.0.0.1:8000/api/users/marks/
-Authorization: Basic teacher_mech2:password@123
+Authorization: Basic teacher_mech3:password@123
 Content-Type: application/json
 
 {
-  "student": 10,
-  "subject": 6,
-  "mark_obtained": 100
+  "student": 15,
+  "subject": 9,
+  "mark_obtained": 77
 }
 
 #api call for updating marks
@@ -158,5 +159,29 @@ Content-Type: application/json
 ###
 
 GET http://127.0.0.1:8000/api/users/hod/department-marks/
-Authorization: Basic teacher_mech1:password@123
+Authorization: Basic teacher_cse1:password@123
 Content-Type: application/json
+
+#api call to view their on mark as a student
+###
+
+GET http://127.0.0.1:8000/api/users/student/marks/
+Authorization: Basic student_cse1:password@123
+
+#api call for student report
+###
+
+GET http://127.0.0.1:8000/api/users/student/report/
+Authorization: Basic student_mech5:password@123
+
+#api call for subject topper
+###
+
+GET http://127.0.0.1:8000/api/users/subjects/6/topper/
+Authorization: Basic teacher_cse2:password@123
+
+#api call for department stats
+###
+
+GET http://127.0.0.1:8000/api/users/hod/stats/
+Authorization: Basic teacher_mech1:password@123

@@ -7,7 +7,7 @@ from rest_framework import authentication,permissions
 from django.contrib.auth import authenticate
 from users.models import StudentProfile,TeacherProfile,Department,CustomUser,Subject,Mark
 from users.serializers import StudentProfileSerializer,TeacherProfileSerializer,SubjectSerializer,MarkSerializer
-from users.permissions import IsAdmin,IsHOD,IsTeacherorAdmin
+from users.permissions import IsAdmin,IsAdminOrHOD,IsTeacherorAdmin
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
@@ -229,24 +229,16 @@ class SubjectUpdateDeleteView(APIView):
 
     
 class MarkCreateView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    permission_classes=[IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        teacher_profile = get_object_or_404(TeacherProfile, user=request.user)
 
-    def post(self,request,*args,**kwargs):
-
-        teacher_profile=get_object_or_404(TeacherProfile,user=request.user)
-
-        # if teacher_profile!=teacher_profile.department.subject:
-
-        #     return Response({'detail':"Only subject teacher can add marks"})
-        
-        serializer=MarkSerializer(data=request.data)
+        serializer = MarkSerializer(data=request.data)
 
         if serializer.is_valid():
-
-            student=serializer.validated_data['student']
-
-            subject=serializer.validated_data['subject']
+            student = serializer.validated_data['student']
+            subject = serializer.validated_data['subject']
 
             if subject.teacher != teacher_profile:
                 return Response({'detail': 'You are not the assigned teacher for this subject.'})
@@ -255,10 +247,10 @@ class MarkCreateView(APIView):
                 return Response({'detail': 'Student does not belong to your department.'})
 
             serializer.save(teacher=teacher_profile)
-            
             return Response(serializer.data)
 
         return Response(serializer.errors)
+
     
 class MarkUpdateDeleteView(APIView):
     # permission_classes = [IsAuthenticated]
@@ -346,3 +338,91 @@ class HODStudentMarksView(APIView):
         marks = Mark.objects.filter(student__in=department_students)
         serializer = MarkSerializer(marks, many=True)
         return Response(serializer.data)
+
+class StudentReportView(APIView):
+
+    permission_classes=[IsAuthenticated]
+
+    def get(self,request,*args,**kwargs):
+
+        student=get_object_or_404(StudentProfile,user=request.user)
+        marks=Mark.objects.filter(student=student)
+
+        total_marks=sum(mark.mark_obtained for mark in marks)
+        total_subject=marks.count()
+        average=round(total_marks/total_subject,2) if total_subject else 0
+
+        mark_data = MarkSerializer(marks, many=True).data
+
+        return Response({
+            "student":student.user.username,
+            "department":student.department.name,
+            "total_marks":total_marks,
+            "average":average,
+            "subject_wise_marks":mark_data
+        })
+
+
+class SubjectTopperView(APIView):
+
+    permission_classes=[IsAuthenticated,IsTeacherorAdmin]
+
+    def get(self,request,*args,**kwargs):
+
+        id=kwargs.get("pk")
+
+        subject=get_object_or_404(Subject, id=id)
+
+        top_mark=Mark.objects.filter(subject=subject).order_by("-mark_obtained").first()
+
+        if not top_mark:
+            return Response({"detail": "No marks available for this subject."})
+
+        return Response({
+            "subject": subject.name,
+            "topper": top_mark.student.user.username,
+            "mark": top_mark.mark_obtained,
+            "status": "Pass" if top_mark.mark_obtained >= 40 else "Fail"
+        })
+
+
+class DepartmentStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        teacher = get_object_or_404(TeacherProfile, user=request.user)
+        department = getattr(teacher, 'hod_department', None)
+
+        if department is None:
+            return Response({"detail": "You are not HOD of any department."}, status=403)
+
+        subjects = Subject.objects.filter(department=department)
+        stats = []
+
+        for subject in subjects:
+            marks_qs = Mark.objects.filter(subject=subject)
+            count = marks_qs.count()
+
+            if count == 0:
+                stats.append({
+                    "subject": subject.name,
+                    "average_mark": None,
+                    "pass_percentage": None
+                })
+                continue
+
+            total = sum(mark.mark_obtained for mark in marks_qs)
+            average = round(total / count, 2)
+            passed = marks_qs.filter(mark_obtained__gte=40).count()
+            pass_percentage = round((passed / count) * 100, 2)
+
+            stats.append({
+                "subject": subject.name,
+                "average_mark": average,
+                "pass_percentage": pass_percentage
+            })
+
+        return Response({
+            "department": department.name,
+            "subjects_statistics": stats
+        })

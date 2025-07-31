@@ -30,3 +30,12 @@ class IsTeacherorAdmin(BasePermission):
     def has_permission(self, request, view):
         
         return request.user.is_authenticated and (request.user.user_type == 'teacher' or request.user.is_superuser)
+    
+class IsAdminOrHOD(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if user.is_superuser:
+            return True
+        if hasattr(user, 'teacherprofile'):
+            return user.teacherprofile.is_hod  
+        return False
